@@ -1,5 +1,8 @@
 Changes
 =======
 
-0.00001
-  - Initial release
+0.97001 5 Apr 2008
+  - Detect libiconv as well.
+
+0.97000 4 Apr 2008
+  - Initial release for mecab 0.97

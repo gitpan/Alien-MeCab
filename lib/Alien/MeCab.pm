@@ -1,10 +1,10 @@
-# $Id: /mirror/coderepos/lang/perl/Alien-MeCab/trunk/lib/Alien/MeCab.pm 49612 2008-04-04T09:43:12.609338Z daisuke  $
+# $Id: /mirror/coderepos/lang/perl/Alien-MeCab/trunk/lib/Alien/MeCab.pm 49650 2008-04-05T09:07:41.180496Z daisuke  $
 
 package Alien::MeCab;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '0.97000';
+$VERSION = '0.97001';
 
 1;
 

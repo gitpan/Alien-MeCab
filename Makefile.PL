@@ -23,6 +23,28 @@ my $MECAB_SOURCE     = File::Spec->catfile("src", $MECAB_BASENAME);
 my $MECAB_EXE        = File::Spec->catfile("src", "mecab-$MECAB_VERSION.exe") if $^O eq 'MSWin32';
 
 eval {
+    Devel::CheckLib::assert_lib(lib => "iconv", libpath => $ENV{LIBDIR});
+};
+if ($@) {
+    print <<EOM;
+
+*** Whoa! libiconv was not detected! ***
+
+Can't proceed without libiconv.
+You will have to install libiconv by yourself.
+
+EOM
+
+    # XXX - in the future, after we create Alien::Iconv, I want to say
+    # the following instead:
+# You can either
+#  (1) install Alien::Iconv (which will build iconv from source), or
+#  (2) install libiconv by yourself by other means.
+#before proceeding.
+    exit 0;
+}
+
+eval {
     Devel::CheckLib::assert_lib(lib => "mecab", libpath => $ENV{LIBDIR} )
 };
 if (! $@) {
@@ -138,7 +160,7 @@ EOM
 WriteMakefile(
     LIBS    => [ split(/\s+/, $ENV{LIBDIR}) ],
     NAME => 'Alien-MeCab',
-    VERSION => "${MECAB_VERSION}000",
+    VERSION => $DIST_VERSION,
 );
 
 print "Now you should type 'make'\n";
