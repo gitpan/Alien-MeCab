@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.97002 5 Apr 2008
+  - Respect CCFLAGS and LDFLAGS. refs #34700
+  - Only detect libiconv on non-Windows platforms
+
 0.97001 5 Apr 2008
   - Detect libiconv as well.
 

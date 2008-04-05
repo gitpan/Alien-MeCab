@@ -8,25 +8,46 @@ use File::Spec;
 my $CURDIR = Cwd::cwd();
 
 # Here's the file that we're going to use to extract some data
-my $SPEC_FILE     = 'lib/Alien/MeCab.pm';
+my $SPEC_FILE       = 'lib/Alien/MeCab.pm';
+
+# Check for hellish-ness
+my $RUNNING_IN_HELL = $^O eq 'MSWin32';
 
 # Get the version 
 my $DIST_VERSION  = do {
     require ExtUtils::MM_Unix;
     ExtUtils::MM_Unix->parse_version($SPEC_FILE);
 };
+
+# Actual mecab version. This is the number up to the second fractional digit
+# of the dist version
 my $MECAB_VERSION    = substr($DIST_VERSION, 0, 4);
-my $MECAB_SOURCE_DIR = File::Spec->rel2abs(
-    File::Spec->catfile("src", "mecab-$MECAB_VERSION"));
+
+# Filenames 
+my $MECAB_SOURCE_DIR = File::Spec->catfile("src", "mecab-$MECAB_VERSION");
 my $MECAB_BASENAME   = "mecab-$MECAB_VERSION.tar.gz";
 my $MECAB_SOURCE     = File::Spec->catfile("src", $MECAB_BASENAME);
-my $MECAB_EXE        = File::Spec->catfile("src", "mecab-$MECAB_VERSION.exe") if $^O eq 'MSWin32';
+my $MECAB_EXE        = File::Spec->catfile("src", "mecab-$MECAB_VERSION.exe");
 
-eval {
-    Devel::CheckLib::assert_lib(lib => "iconv", libpath => $ENV{LIBDIR});
-};
-if ($@) {
-    print <<EOM;
+# Absolut-ize all paths
+$MECAB_SOURCE_DIR    = File::Spec->rel2abs($MECAB_SOURCE_DIR);
+$MECAB_SOURCE        = File::Spec->rel2abs($MECAB_SOURCE);
+$MECAB_EXE           = File::Spec->rel2abs($MECAB_EXE);
+
+# Construct the necessary flags
+my $CCFLAGS = $ENV{CCFLAGS};
+my $LDFLAGS = $ENV{LDFLAGS};
+if (! $RUNNING_IN_HELL) {
+    $CCFLAGS ||= '-I/usr/local/include';
+    $LDFLAGS ||= '-L/usr/local/lib';
+}
+
+if (! $RUNNING_IN_HELL) {
+    eval {
+        Devel::CheckLib::assert_lib(lib => "iconv", libpath => $LDFLAGS);
+    };
+    if ($@) {
+        print <<EOM;
 
 *** Whoa! libiconv was not detected! ***
 
@@ -41,11 +62,12 @@ EOM
 #  (1) install Alien::Iconv (which will build iconv from source), or
 #  (2) install libiconv by yourself by other means.
 #before proceeding.
-    exit 0;
+        exit 0;
+    }
 }
 
 eval {
-    Devel::CheckLib::assert_lib(lib => "mecab", libpath => $ENV{LIBDIR} )
+    Devel::CheckLib::assert_lib(lib => "mecab", libpath => $LDFLAGS )
 };
 if (! $@) {
     print <<EOM;
@@ -68,12 +90,7 @@ EOM
 }
 
 # Ask if we want to download the source.
-my $sourcefile;
-my $test;
-$sourcefile = ($^O eq 'MSWin32') ? $MECAB_EXE
-                                 : $MECAB_SOURCE;
-$test = ($^O eq 'MSWin32') ? "win\n"
-                           : "other\n";
+my $sourcefile = $RUNNING_IN_HELL ? $MECAB_EXE : $MECAB_SOURCE;
 if (! -f $sourcefile) {
     my $yn = prompt("mecab source file $sourcefile does not exist. Download it now?", "y");
     if ($yn =~ /^y(?:es)?$/i) {
@@ -135,6 +152,9 @@ if ($^O ne 'MSWin32') {
                 "  $configure_args\n";
 
             chdir $MECAB_SOURCE_DIR;
+
+            local $ENV{CFLAGS}  = $CCFLAGS;
+            local $ENV{LDFLAGS} = $LDFLAGS;
             my @cmd = (File::Spec->catfile($MECAB_SOURCE_DIR, "configure"),
                 split(/\s+/, $configure_args));
             if (system(@cmd) != 0) {
@@ -155,10 +175,13 @@ print <<EOM;
 Going to use the following information:
     DIST_VERSION: $DIST_VERSION
     MECAB_VERSION: $MECAB_VERSION
+    CCFLAGS: $CCFLAGS
+    LDFLAGS: $LDFLAGS
 EOM
 
 WriteMakefile(
-    LIBS    => [ split(/\s+/, $ENV{LIBDIR}) ],
+    CCFLAGS => $CCFLAGS,
+    LDFLAGS => $LDFLAGS,
     NAME => 'Alien-MeCab',
     VERSION => $DIST_VERSION,
 );
@@ -183,7 +206,7 @@ sub constants
 sub postamble {
     my $make_str;
 
-	if ($^O eq 'MSWin32') {
+	if ($RUNNING_IN_HELL) {
         $make_str = <<MAKE_FRAG;
 libmecab:
 	$MECAB_EXE
