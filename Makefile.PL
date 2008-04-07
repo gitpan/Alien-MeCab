@@ -44,7 +44,7 @@ if (! $RUNNING_IN_HELL) {
 
 if (! $RUNNING_IN_HELL) {
     eval {
-        Devel::CheckLib::assert_lib(lib => "iconv", libpath => $LDFLAGS);
+        Devel::CheckLib::assert_lib(lib => "iconv", LIBS => $LDFLAGS);
     };
     if ($@) {
         print <<EOM;
@@ -67,7 +67,7 @@ EOM
 }
 
 eval {
-    Devel::CheckLib::assert_lib(lib => "mecab", libpath => $LDFLAGS )
+    Devel::CheckLib::assert_lib(lib => "mecab", LIBS => $LDFLAGS )
 };
 if (! $@) {
     print <<EOM;
