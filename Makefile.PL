@@ -144,9 +144,16 @@ if ($^O ne 'MSWin32') {
         }
 
         if( $run_configure =~ /^y/i ) {
-            my $configure_args = prompt(
-                "\nWould you like to pass any arguments to configure?", 
-            );
+            print "\nWe're going to run configure for mecab.\n",
+                "First, we'll ask you a few questions about common options\n\n";
+
+            my $prefix = prompt( "Where would you like to install libmecab?", "/usr/local" );
+            my $charset = prompt( "What charset would you like to use?", "utf8" );
+            my $configure_args = '';
+            $configure_args .= "--prefix=$prefix " if $prefix;
+            $configure_args .= "--with-charset=$charset " if $charset;
+
+            $configure_args .= prompt("Are there any other arguments you would like to pass to configure?" );
 
             print "\nMeCab will be configured with the following arguments:\n",
                 "  $configure_args\n";

@@ -1,6 +1,9 @@
 Changes
 =======
 
+0.97004 12 Apr 2008
+  - Ask for prefix and charset to use at configure time.
+
 0.97003 06 Apr 2008
   - Use LIBS instead of libpath as suggested by srezic
 
