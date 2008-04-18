@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.97005 18 Apr 2008
+  - Add dependency to Alien::Iconv if we could not detect libiconv and
+    the user chose to do so
+
 0.97004 12 Apr 2008
   - Ask for prefix and charset to use at configure time.
 

@@ -34,6 +34,8 @@ $MECAB_SOURCE_DIR    = File::Spec->rel2abs($MECAB_SOURCE_DIR);
 $MECAB_SOURCE        = File::Spec->rel2abs($MECAB_SOURCE);
 $MECAB_EXE           = File::Spec->rel2abs($MECAB_EXE);
 
+my %REQUIRES;
+
 # Construct the necessary flags
 my $CCFLAGS = $ENV{CCFLAGS};
 my $LDFLAGS = $ENV{LDFLAGS};
@@ -51,18 +53,23 @@ if (! $RUNNING_IN_HELL) {
 
 *** Whoa! libiconv was not detected! ***
 
-Can't proceed without libiconv.
-You will have to install libiconv by yourself.
-
+MeCab requires libiconv to work properly. You can either 
+    (1) install it yourself by hand, or
+    (2) install it via Alien::Iconv
 EOM
 
-    # XXX - in the future, after we create Alien::Iconv, I want to say
-    # the following instead:
-# You can either
-#  (1) install Alien::Iconv (which will build iconv from source), or
-#  (2) install libiconv by yourself by other means.
-#before proceeding.
-        exit 0;
+        my $yn = prompt("Would you like to add Alien::Iconv to prerequisite modules?", "y");
+        if ($yn !~ /^y(?:es)?$/) {
+            print <<EOM;
+
+You chose not to install libiconv. Please install it manually and
+re-run perl Makefile.PL for Alien::MeCab.
+
+EOM
+            exit 0;
+        }
+
+        $REQUIRES{ 'Alien::MeCab' } = '1.12001';
     }
 }
 
@@ -191,6 +198,7 @@ WriteMakefile(
     LDFLAGS => $LDFLAGS,
     NAME => 'Alien-MeCab',
     VERSION => $DIST_VERSION,
+    PREREQ_PM => \%REQUIRES,
 );
 
 print "Now you should type 'make'\n";
